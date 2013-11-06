@@ -37,6 +37,7 @@
 			<artifactId>mrunit</artifactId>
 			<version>1.0.0</version>
 			<classifier>hadoop1</classifier>
+			<scope>test</scope>
 		</dependency>
 
 	</dependencies>
