@@ -48,7 +48,6 @@ public class RelationshipRecordReaderTest {
         int relationShipCount = 0;
         while (reader.nextKeyValue()) {
             relationShipCount++;
-            System.out.println(reader.getCurrentValue());
         }
         assertEquals("Wrong Number of Relationships", 3, relationShipCount);
     }
