@@ -25,8 +25,8 @@ public class AdjacencyListRelationshipReducerTest {
     public void testMapper() throws IOException {
         reduceDriver.withInput(new LongWritable(1), Arrays.asList(new LongWritable(3), new LongWritable(2)))
                 .withInput(new LongWritable(2), Arrays.asList(new LongWritable(4), new LongWritable(3)))
-                .withOutput(NullWritable.get(), new Text("1\t3\t2"))
-                .withOutput(NullWritable.get(), new Text("2\t4\t3"));
+                .withOutput(NullWritable.get(), new Text("1\t2\t3\t2"))
+                .withOutput(NullWritable.get(), new Text("2\t2\t4\t3"));
         reduceDriver.runTest();
     }
 
