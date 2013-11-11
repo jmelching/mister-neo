@@ -1,15 +1,15 @@
 package org.jmelching.misterneo.formats;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 
+import java.io.File;
 import java.io.IOException;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapred.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
-import org.jmelching.misterneo.formats.RelationshipRecordReader;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -39,6 +39,7 @@ public class RelationshipRecordReaderTest {
 
         when(genericSplit.getPath()).thenReturn(new Path(path));
         when(context.getConfiguration()).thenReturn(new Configuration());
+        when(genericSplit.getLength()).thenReturn(new File(path).length());
         reader.initialize(genericSplit, context);
 
     }

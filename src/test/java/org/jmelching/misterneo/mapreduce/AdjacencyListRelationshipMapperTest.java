@@ -22,9 +22,16 @@ public class AdjacencyListRelationshipMapperTest {
 
     @Test
     public void testMapper() throws IOException {
-        mapDriver.withInput(NullWritable.get(), new RelationshipRecordWritable(1, 2, 0));
-        mapDriver.withInput(NullWritable.get(), new RelationshipRecordWritable(1, 3, 0));
-        mapDriver.withInput(NullWritable.get(), new RelationshipRecordWritable(3, 2, 1));
+        RelationshipRecordWritable recordOne = new RelationshipRecordWritable();
+        recordOne.setValue(1, 2, 0);
+        RelationshipRecordWritable recordTwo = new RelationshipRecordWritable();
+        recordTwo.setValue(1, 3, 0);
+        RelationshipRecordWritable recordThree = new RelationshipRecordWritable();
+        recordThree.setValue(3, 2, 1);
+
+        mapDriver.withInput(NullWritable.get(), recordOne);
+        mapDriver.withInput(NullWritable.get(), recordTwo);
+        mapDriver.withInput(NullWritable.get(), recordThree);
         mapDriver.withOutput(new LongWritable(1), new LongWritable(2));
         mapDriver.withOutput(new LongWritable(1), new LongWritable(3));
         mapDriver.withOutput(new LongWritable(3), new LongWritable(2));

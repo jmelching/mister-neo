@@ -14,7 +14,7 @@ public class RelationshipRecordWritable implements Writable {
     public RelationshipRecordWritable() {
     }
 
-    public RelationshipRecordWritable(long firstNode, long secondNode, int type) {
+    public void setValue(long firstNode, long secondNode, int type) {
         this.firstNode = firstNode;
         this.secondNode = secondNode;
         this.type = type;
@@ -40,5 +40,7 @@ public class RelationshipRecordWritable implements Writable {
     public long getSecondNode() {
        return this.secondNode;
     }
+    
+  
 
 }

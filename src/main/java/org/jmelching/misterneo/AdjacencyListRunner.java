@@ -1,5 +1,8 @@
 package org.jmelching.misterneo;
 
+import java.io.File;
+
+import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.Path;
@@ -16,19 +19,22 @@ import org.jmelching.misterneo.mapreduce.AdjacencyListRelationshipReducer;
 public class AdjacencyListRunner extends Configured implements Tool {
 
     public int run(String[] args) throws Exception {
+        
+//        getConf().set("mapred.max.split.size","156");
+
         Job job = new Job(this.getConf());
         job.setJobName("adjacencyList");
+        job.setJarByClass(AdjacencyListRunner.class);
 
         job.setMapOutputKeyClass(LongWritable.class);
         job.setMapOutputValueClass(LongWritable.class);
         job.setMapperClass(AdjacencyListRelationshipMapper.class);
         job.setReducerClass(AdjacencyListRelationshipReducer.class);
         job.setInputFormatClass(RelationshipInputFormat.class);
-        FileInputFormat.setInputPaths(job, new Path(args[0]));
-        FileOutputFormat.setOutputPath(job, new Path(args[1]));
-        job.waitForCompletion(false);
-        
-        
+        FileInputFormat.setInputPaths(job, new Path(getConf().get("input")));
+        FileOutputFormat.setOutputPath(job, new Path(getConf().get("output")));
+        job.waitForCompletion(true);
+
         return 0;
     }
 

@@ -18,7 +18,8 @@ import org.neo4j.kernel.impl.nioneo.store.Record;
 
 public class RelationshipRecordReader extends RecordReader<NullWritable, RelationshipRecordWritable> {
 
-    private RelationshipRecordWritable record = null;
+    private static final int RECORD_LENGTH = 33;
+    private RelationshipRecordWritable record = new RelationshipRecordWritable();
     private FSDataInputStream input;
     private long start;
     private long pos;
@@ -57,83 +58,49 @@ public class RelationshipRecordReader extends RecordReader<NullWritable, Relatio
         FileSystem fs = file.getFileSystem(conf);
         start = split.getStart();
         end = start + split.getLength();
-        // boolean skipFirstLine = false;
         input = fs.open(split.getPath());
-
-        // if (start != 0){
-        // skipFirstLine = true;
-        // --start;
-        // filein.seek(start);
-        // }
-        // in = new LineReader(filein,conf);
-        // if(skipFirstLine){
-        // start += in.readLine(new
-        // Text(),0,(int)Math.min((long)Integer.MAX_VALUE, end - start));
-        // }
+        input.seek(start + (start % RECORD_LENGTH));
+        // TODO handle the trailing header info
         this.pos = start;
 
     }
 
     @Override
     public boolean nextKeyValue() throws IOException, InterruptedException {
+        if (pos < end) {
+            try {
+                int inUseByte = input.readUnsignedByte();
+                boolean inUse = (inUseByte & 0x1) == Record.IN_USE.intValue();
 
-        try {
-            int inUseByte = input.readUnsignedByte();
-            boolean inUse = (inUseByte & 0x1) == Record.IN_USE.intValue();
+                long firstNode = input.readInt();
+                long firstNodeMod = (inUseByte & 0xEL) << 31;
 
-            long firstNode = input.readInt();
-            long firstNodeMod = (inUseByte & 0xEL) << 31;
+                long secondNode = input.readInt();
 
-            long secondNode = input.readInt();
+                long typeInt = input.readInt();
+                long secondNodeMod = (typeInt & 0x70000000L) << 4;
+                int type = (int) (typeInt & 0xFFFF);
 
-            // [ xxx, ][ , ][ , ][ , ] second node high order bits, 0x70000000
-            // [ ,xxx ][ , ][ , ][ , ] first prev rel high order bits, 0xE000000
-            // [ , x][xx , ][ , ][ , ] first next rel high order bits, 0x1C00000
-            // [ , ][ xx,x ][ , ][ , ] second prev rel high order bits, 0x380000
-            // [ , ][ , xxx][ , ][ , ] second next rel high order bits, 0x70000
-            // [ , ][ , ][xxxx,xxxx][xxxx,xxxx] type
-            long typeInt = input.readInt();
-            long secondNodeMod = (typeInt & 0x70000000L) << 4;
-            int type = (int) (typeInt & 0xFFFF);
+                long firstPrevRel = input.readInt();
 
-            // record = new RelationshipRecord(new Random().nextInt(),
-            // longFromIntAndMod(firstNode, firstNodeMod),
-            // longFromIntAndMod(secondNode, secondNodeMod), type);
-            // record.setInUse(inUse);
+                long firstNextRel = input.readInt();
 
-            long firstPrevRel = input.readInt();
-            // long firstPrevRelMod = (typeInt & 0xE000000L) << 7;
-            // record.setFirstPrevRel(longFromIntAndMod(firstPrevRel,
-            // firstPrevRelMod));
+                long secondPrevRel = input.readInt();
 
-            long firstNextRel = input.readInt();
-            // long firstNextRelMod = (typeInt & 0x1C00000L) << 10;
-            // record.setFirstNextRel(longFromIntAndMod(firstNextRel,
-            // firstNextRelMod));
+                long secondNextRel = input.readInt();
 
-            long secondPrevRel = input.readInt();
-            // long secondPrevRelMod = (typeInt & 0x380000L) << 13;
-            // record.setSecondPrevRel(longFromIntAndMod(secondPrevRel,
-            // secondPrevRelMod));
+                long nextProp = input.readInt();
+                pos = pos + RECORD_LENGTH;
+                record.setValue(longFromIntAndMod(firstNode, firstNodeMod),
+                        longFromIntAndMod(secondNode, secondNodeMod), type);
 
-            long secondNextRel = input.readInt();
-            // long secondNextRelMod = (typeInt & 0x70000L) << 16;
-            // record.setSecondNextRel(longFromIntAndMod(secondNextRel,
-            // secondNextRelMod));
-
-            long nextProp = input.readInt();
-            // long nextPropMod = (inUseByte & 0xF0L) << 28;
-            //
-            // record.setNextProp(longFromIntAndMod(nextProp, nextPropMod));
-
-            if (inUse) { // TODO: create reset
-                record = new RelationshipRecordWritable(longFromIntAndMod(firstNode, firstNodeMod), longFromIntAndMod(
-                        secondNode, secondNodeMod), type);
+                return true;
+            } catch (EOFException e) {
+                return false;
             }
-        } catch (EOFException e) {
+        } else {
             return false;
         }
-        return true;
 
     }
 
