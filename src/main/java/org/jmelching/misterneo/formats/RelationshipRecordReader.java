@@ -28,6 +28,7 @@ public class RelationshipRecordReader extends RecordReader<NullWritable, Relatio
     @Override
     public void close() throws IOException {
         input.close();
+        System.out.println("POS: " + pos);
     }
 
     @Override
@@ -59,18 +60,25 @@ public class RelationshipRecordReader extends RecordReader<NullWritable, Relatio
         start = split.getStart();
         end = start + split.getLength();
         input = fs.open(split.getPath());
-        input.seek(start + (start % RECORD_LENGTH));
+        if (start != 0) {
+            input.seek(start + (RECORD_LENGTH - (start % RECORD_LENGTH)));
+        }
         // TODO handle the trailing header info
+        System.out.println("Start: " + start + " End: " + end);
+        if (start != 0) {
+            System.out.println("Seek: " + (RECORD_LENGTH - (start % RECORD_LENGTH)));
+        }
         this.pos = start;
 
     }
 
     @Override
     public boolean nextKeyValue() throws IOException, InterruptedException {
-        if (pos < end) {
+        boolean inUse = false;
+        while (pos < end && !inUse) {
             try {
                 int inUseByte = input.readUnsignedByte();
-                boolean inUse = (inUseByte & 0x1) == Record.IN_USE.intValue();
+                inUse = (inUseByte & 0x1) == Record.IN_USE.intValue();
 
                 long firstNode = input.readInt();
                 long firstNodeMod = (inUseByte & 0xEL) << 31;
@@ -91,16 +99,17 @@ public class RelationshipRecordReader extends RecordReader<NullWritable, Relatio
 
                 long nextProp = input.readInt();
                 pos = pos + RECORD_LENGTH;
-                record.setValue(longFromIntAndMod(firstNode, firstNodeMod),
-                        longFromIntAndMod(secondNode, secondNodeMod), type);
+                if (inUse) {
+                    record.setValue(longFromIntAndMod(firstNode, firstNodeMod),
+                            longFromIntAndMod(secondNode, secondNodeMod), type);
+                    return true;
+                }
 
-                return true;
             } catch (EOFException e) {
                 return false;
             }
-        } else {
-            return false;
         }
+        return false;
 
     }
 

@@ -12,23 +12,22 @@ import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 import org.jmelching.misterneo.formats.RelationshipInputFormat;
 import org.jmelching.misterneo.mapreduce.RelationshipNodeMapper;
-import org.jmelching.misterneo.mapreduce.AdjacencyListRelationshipReducer;
 
-public class AdjacencyListRunner extends Configured implements Tool {
+public class EdgeListRunner extends Configured implements Tool {
 
     public int run(String[] args) throws Exception {
         
         new GenericOptionsParser(args);
+        
 
         Job job = new Job(this.getConf());
-        job.setJobName("adjacencyList");
-        job.setJarByClass(AdjacencyListRunner.class);
-
+        job.setJobName("edgeList");
+        job.setJarByClass(EdgeListRunner.class);
+        job.setInputFormatClass(RelationshipInputFormat.class);
         job.setMapOutputKeyClass(LongWritable.class);
         job.setMapOutputValueClass(LongWritable.class);
         job.setMapperClass(RelationshipNodeMapper.class);
-        job.setReducerClass(AdjacencyListRelationshipReducer.class);
-        job.setInputFormatClass(RelationshipInputFormat.class);
+        job.setNumReduceTasks(0);
         FileInputFormat.setInputPaths(job, new Path(getConf().get("input")));
         FileOutputFormat.setOutputPath(job, new Path(getConf().get("output")));
         job.waitForCompletion(true);
@@ -37,7 +36,7 @@ public class AdjacencyListRunner extends Configured implements Tool {
     }
 
     public static void main(String[] args) throws Exception {
-        int res = ToolRunner.run(new Configuration(), new AdjacencyListRunner(), args);
+        int res = ToolRunner.run(new Configuration(), new EdgeListRunner(), args);
         System.exit(res);
     }
 

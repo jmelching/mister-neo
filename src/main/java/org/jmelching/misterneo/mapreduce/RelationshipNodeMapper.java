@@ -5,7 +5,7 @@ import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.jmelching.misterneo.writables.RelationshipRecordWritable;
 
-public class AdjacencyListRelationshipMapper extends Mapper<NullWritable, RelationshipRecordWritable, LongWritable, LongWritable> {
+public class RelationshipNodeMapper extends Mapper<NullWritable, RelationshipRecordWritable, LongWritable, LongWritable> {
     private LongWritable key = new LongWritable();
     private LongWritable value = new LongWritable();
 

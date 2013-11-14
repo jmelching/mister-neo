@@ -5,7 +5,7 @@ import java.io.IOException;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mrunit.mapreduce.MapDriver;
-import org.jmelching.misterneo.mapreduce.AdjacencyListRelationshipMapper;
+import org.jmelching.misterneo.mapreduce.RelationshipNodeMapper;
 import org.jmelching.misterneo.writables.RelationshipRecordWritable;
 import org.junit.Before;
 import org.junit.Test;
@@ -16,7 +16,7 @@ public class AdjacencyListRelationshipMapperTest {
 
     @Before
     public void setUp() {
-        AdjacencyListRelationshipMapper mapper = new AdjacencyListRelationshipMapper();
+        RelationshipNodeMapper mapper = new RelationshipNodeMapper();
         mapDriver = MapDriver.newMapDriver(mapper);
     }
 
